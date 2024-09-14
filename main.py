@@ -32,3 +32,6 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))  # ถ้าไม่มีตัวแปร PORT กำหนดค่าเริ่มต้นเป็น 8000
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)  # ระบุพอร์ตที่คุณต้องการใช้งาน เช่น 8000
