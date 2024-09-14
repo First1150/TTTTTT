@@ -15,21 +15,21 @@
     }
 
     .back-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #daa403; /* สีพื้นหลังของปุ่ม */
-    color: #fff; /* สีของข้อความ */
-    text-decoration: none; /* เอาเส้นใต้ลิงก์ออก */
-    border-radius: 5px; /* มุมโค้งมน */
-    font-size: 16px; /* ขนาดตัวอักษร */
-    text-align: center; /* จัดตำแหน่งข้อความ */
-    transition: background-color 0.3s ease, transform 0.3s ease; /* เอฟเฟ็กต์การเปลี่ยนแปลง */
-  }
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #daa403; /* สีพื้นหลังของปุ่ม */
+      color: #fff; /* สีของข้อความ */
+      text-decoration: none; /* เอาเส้นใต้ลิงก์ออก */
+      border-radius: 5px; /* มุมโค้งมน */
+      font-size: 16px; /* ขนาดตัวอักษร */
+      text-align: center; /* จัดตำแหน่งข้อความ */
+      transition: background-color 0.3s ease, transform 0.3s ease; /* เอฟเฟ็กต์การเปลี่ยนแปลง */
+    }
 
-  .back-button:hover {
-    background-color: rgb(185, 139, 0); /* สีพื้นหลังเมื่อเมาส์อยู่เหนือปุ่ม */
-    transform: scale(1.05); /* ขยายปุ่มเล็กน้อยเมื่อเมาส์อยู่เหนือ */
-  }
+    .back-button:hover {
+      background-color: rgb(185, 139, 0); /* สีพื้นหลังเมื่อเมาส์อยู่เหนือปุ่ม */
+      transform: scale(1.05); /* ขยายปุ่มเล็กน้อยเมื่อเมาส์อยู่เหนือ */
+    }
 
     .container {
       max-width: 1200px;
@@ -106,36 +106,36 @@
     
     <div class="metrics">
       <div class="metric">
-        <h4>AVG Response</h4>
-        <span id="avg-response">120 ms</span>
+        <h4>Average Response Time</h4>
+        <span id="avg-response">Loading...</span>
       </div>
       <div class="metric">
-        <h4>Count Requests</h4>
-        <span id="count-requests">1500</span>
+        <h4>Max Response Time</h4>
+        <span id="max-response">Loading...</span>
       </div>
       <div class="metric">
-        <h4>Count Errors</h4>
-        <span id="count-errors">10</span>
+        <h4>CPU Utilization</h4>
+        <span id="cpu-utilization">Loading...</span>
       </div>
       <div class="metric">
-        <h4>Hit</h4>
-        <span id="hit">1400</span>
+        <h4>Memory Utilization</h4>
+        <span id="mem-utilization">Loading...</span>
       </div>
       <div class="metric">
-        <h4>Min</h4>
-        <span id="min">100 ms</span>
+        <h4>Error Rate</h4>
+        <span id="err-rate">Loading...</span>
       </div>
       <div class="metric">
-        <h4>Max</h4>
-        <span id="max">250 ms</span>
+        <h4>Conclusion</h4>
+        <span id="conclusion">Loading...</span>
       </div>
       <div class="metric">
-        <h4>RB</h4>
-        <span id="rb">300</span>
+        <h4>Problem</h4>
+        <span id="problem">Loading...</span>
       </div>
       <div class="metric">
-        <h4>SB</h4>
-        <span id="sb">200</span>
+        <h4>Solution</h4>
+        <span id="solution">Loading...</span>
       </div>
     </div>
 
@@ -146,36 +146,60 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const avgResponseRequirement = parseFloat(urlParams.get('avg_response'));
-    const avgResponse = 130; // ใช้ค่าเฉพาะที่ได้จากการคำนวณ
+    // ดึงข้อมูล JSON มาแสดงใน HTML
+    fetch('/metrics')
+        .then(response => response.json())
+        .then(jsonData => {
+            // Update the DOM elements with the corresponding data
+            document.getElementById('avg-response').innerText = jsonData.avg_response + ' ms';
+            document.getElementById('max-response').innerText = jsonData.max_response + ' ms';
+            document.getElementById('cpu-utilization').innerText = jsonData.cpu_utilization + ' %';
+            document.getElementById('mem-utilization').innerText = jsonData.mem_utilization + ' %';
+            document.getElementById('err-rate').innerText = jsonData.err_rate + ' %';
 
-    const isPass = avgResponse <= avgResponseRequirement;
-    document.querySelector('.pass').style.display = isPass ? 'block' : 'none';
-    document.querySelector('.fail').style.display = isPass ? 'none' : 'block';
+            // Conclusion, Problem, and Solution
+            document.getElementById('conclusion').innerText = jsonData.conclusion;
+            document.getElementById('problem').innerText = jsonData.problem;
+            document.getElementById('solution').innerText = jsonData.solution;
 
-    const ctx = document.getElementById('myChart').getContext('2d');
+            // Set color for Conclusion
+            if (jsonData.conclusion === 'FAIL') {
+                document.getElementById('conclusion').style.color = 'red';
+            } else {
+                document.getElementById('conclusion').style.color = 'green';
+            }
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['AVG Response', 'Count Requests', 'Count Errors', 'Hit', 'Min', 'Max', 'RB', 'SB'],
-        datasets: [{
-          label: 'Performance Metrics',
-          data: [avgResponse, 1500, 10, 1400, 100, 250, 300, 200],
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
+            // Display PASS/FAIL status
+            const avgResponseRequirement = 200; // ใช้ค่าที่ต้องการเปรียบเทียบ
+            const avgResponse = jsonData.avg_response;
+            const isPass = avgResponse <= avgResponseRequirement;
+            document.querySelector('.pass').style.display = isPass ? 'block' : 'none';
+            document.querySelector('.fail').style.display = isPass ? 'none' : 'block';
+
+            // Chart
+            const ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Average Response', 'Max Response', 'CPU Utilization', 'Memory Utilization', 'Error Rate'],
+                    datasets: [{
+                        label: 'Performance Metrics',
+                        data: [jsonData.avg_response, jsonData.max_response, jsonData.cpu_utilization, jsonData.mem_utilization, jsonData.err_rate],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
   </script>
 </body>
 </html>
