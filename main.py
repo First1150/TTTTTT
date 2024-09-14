@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -26,3 +27,8 @@ async def upload_file(file: UploadFile = File(...)):
         "filename": file.filename,
         "num_lines": num_lines
     })
+# ใช้พอร์ตที่ได้จากตัวแปรแวดล้อม
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # ถ้าไม่มีตัวแปร PORT กำหนดค่าเริ่มต้นเป็น 8000
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=port)
