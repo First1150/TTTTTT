@@ -92,7 +92,8 @@
   <a href="/" class="back-button">Back to Home</a>
   <div class="form-container">
     <h3>Performance Test Requirements</h3>
-    <form id="mainForm" enctype="multipart/form-data" action="http://127.0.0.1:8000/upload" method="POST">
+    <form id="mainForm" enctype="multipart/form-data" action="http://<http://34.87.122.161:8086>/write?db=<DATABASE>" method="POST">
+
       <!-- ช่องอัปโหลดไฟล์ CSV แรก -->
       <div class="form-group">
         <label for="fileUpload1">Select file to upload (CSV):</label>
@@ -101,7 +102,7 @@
       <!-- ช่องอัปโหลดไฟล์ CSV ที่สอง -->
       <div class="form-group">
         <label for="fileUpload2">Select another file to upload (CSV):</label>
-        <input type="file" id="fileUpload2" name="fileUpload2" accept=".csv" required>
+        <input type="file" id="fileUpload2" name="fileUpload2" accept=".csv">
       </div>
       <!-- ช่องกรอกจำนวนผู้ใช้งานพร้อมกัน -->
       <div class="form-group">
