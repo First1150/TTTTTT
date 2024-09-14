@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <!-- jsPDF -->
+      <script src="https://cdn.jsdelivr.net/npm/docx@7.1.1/build/index.js"></script>
+
+  <title>Download Report</title>
+  <style>
+    body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #1e1e2e;
+            color: #fff;
+        }
+    .form-container {
+      background-color: #2e2e3e;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      margin: 0 auto;
+      color: #fff;
+      max-width: 500px;
+    }
+
+    .form-container h3 {
+      color: #daa403;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #444;
+      color: #fff;
+    }
+
+    .form-group input[type="submit"],
+    .form-group button {
+      background-color: #daa403;
+      cursor: pointer;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+
+    .form-group input[type="submit"]:hover,
+    .form-group button:hover {
+      background-color: rgb(185, 139, 0);
+    }
+    .back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #daa403; /* สีพื้นหลังของปุ่ม */
+    color: #fff; /* สีของข้อความ */
+    text-decoration: none; /* เอาเส้นใต้ลิงก์ออก */
+    border-radius: 5px; /* มุมโค้งมน */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    text-align: center; /* จัดตำแหน่งข้อความ */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* เอฟเฟ็กต์การเปลี่ยนแปลง */
+  }
+
+  .back-button:hover {
+    background-color: rgb(185, 139, 0); /* สีพื้นหลังเมื่อเมาส์อยู่เหนือปุ่ม */
+    transform: scale(1.05); /* ขยายปุ่มเล็กน้อยเมื่อเมาส์อยู่เหนือ */
+  }
+  </style>
+</head>
+<body>
+    <div>  
+        <a href="/" class="back-button">Back to Home</a>
+        </div>
+
+  <div class="form-container">
+    <h3>DOCUMENT REPORT</h3>
+        <!----><center><button id="generate-doc" class="back-button">Generate DOCX</button></center>
+        <script>
+            document.getElementById('generate-doc').addEventListener('click', function () {
+                const { Document, Packer, Paragraph, TextRun } = docx;
+        
+                // ข้อมูล JSON ที่จะส่งมาแทนตัวแปร
+                const jsonData = {
+                    title: "Report Result",
+                    section1: {
+                        title: "Response Time",
+                        details: [
+                            "ความหมาย: เวลาในการตอบสนองของระบบต่อคำร้องที่ได้รับ",
+                            "สิ่งที่วัด:",
+                            " - Average Response Time: เวลาตอบสนองเฉลี่ยของคำร้องทั้งหมด",//รายงาน Average Response Time
+                            " - Max/Min Response Time: เวลาตอบสนองที่มากที่สุดและน้อยที่สุด",
+                            " - 90th/95th/99th Percentile: วัดเวลาที่คำร้อง 90%, 95%, หรือ 99% ใช้ในการตอบสนองเพื่อดูการกระจายของค่า",
+                            //"การวัด: ใช้เครื่องมืออย่าง JMeter หรือ Gatling ซึ่งจะบันทึก Response time ของแต่ละคำร้อง และคำนวณค่าเฉลี่ย, สูงสุด, ต่ำสุด รวมถึง Percentile"
+                        ]
+                    },
+                    section2: {
+                        title: "Throughput",
+                        details: [
+                            "ความหมาย: จำนวนคำร้องที่ระบบสามารถประมวลผลได้ในช่วงเวลาหนึ่ง (เช่น requests per second)",
+                            "สิ่งที่วัด:",
+                            " - Total Throughput: จำนวนคำร้องทั้งหมดที่ประมวลผลได้ต่อวินาที",
+                            " - Per User Throughput: จำนวนคำร้องที่ผู้ใช้แต่ละคนสามารถประมวลผลได้ต่อวินาที",
+                           // "การวัด: ใช้เครื่องมือ Load Testing ที่สามารถรายงานปริมาณคำร้องทั้งหมดที่ถูกประมวลผลในช่วงเวลาหนึ่ง เช่น JMeter, Locust หรือ K6"
+                        ]
+                    },
+                    section3: {
+                        title: "Error Rate",
+                        details: [
+                            "ความหมาย: อัตราการเกิดข้อผิดพลาดในคำร้อง เช่น HTTP errors (เช่น 500 Internal Server Error, 404 Not Found) หรือคำร้องที่ timeout",
+                            "สิ่งที่วัด:",
+                            "Total Errors: จำนวนคำร้องที่ล้มเหลวทั้งหมด",//,
+                            "Error Percentage:เปอร์เซ็นต์ของคำร้องทั้งหมดที่ล้มเหลวเมื่อเทียบกับคำร้องทั้งหมด",
+                           // "การวัด:วิเคราะห์ Error rate จาก logs ที่บันทึกโดยเครื่องมือ Load Testing เพื่อดูว่าคำร้องที่ส่งไปนั้นเกิดข้อผิดพลาดบ่อยแค่ไหน"
+                        ]
+                    },
+                    section4: {
+                        title: "Latency",
+                        details: [
+                            "ความหมาย:เวลาที่ใช้ตั้งแต่ส่งคำร้องไปจนถึงได้รับการตอบกลับครั้งแรก (First Byte) ไม่ใช่เวลาที่ใช้ประมวลผลทั้งหมดเหมือน Response Time",
+                            "สิ่งที่วัด:",
+                            "Average Latency: เวลาหน่วงเฉลี่ยสำหรับการตอบสนองคำร้อง",
+                            "Max/Min Latency: เวลาหน่วงที่มากที่สุดและน้อยที่สุด",
+                           // "การวัด:ใช้เครื่องมือวัดเช่น JMeter, Locust หรือ Gatling เพื่อรายงานค่า Latency ของคำร้องที่ถูกส่งออก"
+                        ]
+                    },
+                    section5: {
+                        title: "CPU Usage",
+                        details: [
+                            "ความหมาย:เปอร์เซ็นต์การใช้ทรัพยากร CPU ขณะระบบทำงานภายใต้การทดสอบโหลด",
+                            "สิ่งที่วัด:",
+                            "CPU Utilization Percentage: เปอร์เซ็นต์การใช้ CPU เฉลี่ยขณะการทดสอบ",
+                           // "การวัด:ใช้เครื่องมือการมอนิเตอร์เซิร์ฟเวอร์ เช่น Grafana, Prometheus, หรือ New Relic เพื่อดูการใช้ CPU ระหว่างการทดสอบ"
+                        ]
+                    },
+                    section6: {
+                        title: "Memory Usage",
+                        details: [
+                            "ความหมาย:การใช้ทรัพยากรหน่วยความจำของระบบเมื่อทำงานภายใต้โหลด",
+                            "สิ่งที่วัด:",
+                            "Memory Utilization Percentage: เปอร์เซ็นต์ของหน่วยความจำที่ถูกใช้ขณะการทดสอบ",
+                            "Memory Leaks: ดูการใช้หน่วยความจำ เพิ่มขึ้นเรื่อยๆ ระหว่างการทดสอบที่ยาวนาน(อาจบ่งชี้ปัญหา memory leak)",
+                           // "การวัด:ใช้เครื่องมือมอนิเตอร์เซิร์ฟเวอร์หรือ APM (Application Performance Monitoring)เช่น New Relic หรือ Datadog"
+                        ]
+                    },
+                    section7: {
+                        title: "Network Bandwidth",
+                        details: [
+                            "ความหมาย:ความสามารถในการรับส่งข้อมูลของเครือข่ายที่ใช้ในการทดสอบโหลด",
+                            "สิ่งที่วัด:",
+                            "Network Throughput: ปริมาณข้อมูลที่ระบบรับส่งได้ในช่วงเวลาหนึ่ง",
+                           // "การวัด:ใช้เครื่องมือมอนิเตอร์เครือข่าย เช่น Wireshark, หรือการมอนิเตอร์เซิร์ฟเวอร์สำหรับการใช้งานเครือข่าย"
+                        ]
+                    },
+                    section8: {
+                        title: "Connection Timeouts",
+                        details: [
+                            "ความหมาย:จำนวนครั้งที่คำร้องหมดเวลาเนื่องจากระบบไม่สามารถตอบสนองได้ทัน",
+                            "สิ่งที่วัด:",
+                            "Total Timeouts: จำนวนคำร้องที่หมดเวลา",
+                            "Timeout Rate: อัตราการหมดเวลาต่อคำร้องทั้งหมด",
+                        ]
+                    },
+                    section9: {
+                        title: "Concurrency",
+                        details: [
+                            "ความหมาย:ความสามารถของระบบในการจัดการคำร้องที่ส่งเข้ามาพร้อมกันหลายคำร้อง",
+                            "สิ่งที่วัด:",
+                            "Number of Active Threads:จำนวนของผู้ใช้หรือคำร้องที่ส่งเข้ามาพร้อมกันขณะทำการทดสอบ",
+                        ]
+                    },
+                    section10: {
+                        title: "Disk I/O (Input/Output)",
+                        details: [
+                            "ความหมาย:ความสามารถในการอ่านและเขียนข้อมูลในดิสก์เมื่อมีคำร้องเข้ามา",
+                            "สิ่งที่วัด:",
+                            "Disk Read/Write Throughput: ปริมาณข้อมูลที่ระบบสามารถอ่านหรือเขียนลงดิสก์ได้ในช่วงเวลาหนึ่ง",
+                        ]
+                    },
+                };
+        
+                // สร้างเอกสารใหม่และแทนที่ตัวแปรจาก JSON
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: jsonData.title,
+                                        bold: true,
+                                        size: 64
+                                    }),
+                                ],
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `1. ${jsonData.section1.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section1.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+        
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `2. ${jsonData.section2.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section2.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+        
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `3. ${jsonData.section3.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section3.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `4. ${jsonData.section4.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section4.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `5. ${jsonData.section5.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section5.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `6. ${jsonData.section6.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section6.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `7. ${jsonData.section7.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section7.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `8. ${jsonData.section8.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section8.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `9. ${jsonData.section9.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section9.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `10. ${jsonData.section10.title}`,
+                                        bold: true,
+                                        size: 40
+                                    }),
+                                ],
+                            }),
+                            ...jsonData.section10.details.map(detail => new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: detail,
+                            size: 32
+                        })
+                    ]
+                })),
+                        ],
+                    }],
+                });
+        
+                // บันทึกไฟล์
+                Packer.toBlob(doc).then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "banana_file.docx";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        </script>
+    <div id="result"></div>
+  </div>
+
+  <!-- สคริปต์เพื่อจัดการการส่งข้อมูลและไฟล์พร้อมกัน -->
+  <script>
+    document.getElementById('mainForm').addEventListener('submit', function(e) {
+      e.preventDefault(); // ป้องกันการโหลดหน้าใหม่
+
+      const formData = new FormData(this);
+
+      // ส่งข้อมูลทั้งหมดรวมถึงไฟล์ไปยัง FastAPI backend
+      fetch('http://127.0.0.1:8000/upload', { // ปรับปรุง URL ตามจริงถ้าเราใช้ server อื่น
+          method: 'POST',
+          body: formData
+      })
+      .then(response => response.json())
+      .catch(error => {
+          // แสดงผล Error หากการส่งข้อมูลมีปัญหา
+          document.getElementById('result').innerHTML = '<p>Error submitting form.</p>';
+      });
+    });
+        function loadContent(page) {
+            const xhttp = new XMLHttpRequest();
+            xhttp.onload = function () {
+                document.getElementById("main-content").innerHTML = this.responseText;
+            }
+            xhttp.open("GET", page, true);
+            xhttp.send();
+        }
+
+    function loadCSV(url, callback) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                callback(xhr.responseText);
+            }
+        };
+        xhr.send();
+    }
+
+    function parseCSV(data) {
+    const rows = data.trim().split('\n');
+    const headers = rows[0].split(','); // หัวข้อคอลัมน์
+    const values = rows.slice(1).map(row => row.split(',').map(Number)); // แปลงข้อมูลเป็นตัวเลข
+
+    // คำนวณค่าเฉลี่ย
+    const averages = headers.map((_, colIndex) => {
+        const columnValues = values.map(row => row[colIndex+1]);// ข้ามคอลัมน์แรก (index 0)
+        const sum = columnValues.reduce((acc, val) => acc + val, 0);
+        return sum / columnValues.length;
+    });
+    // หัวข้อคอลัมน์ที่ไม่ใช่คอลัมน์แรก
+    const filteredHeaders = headers.slice(1);
+
+    return {
+        headers: headers,
+        averages: averages
+    };
+}
+
+
+function createChart(labels, averages) {
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    // สร้างสีสำหรับแต่ละแท่ง
+    const backgroundColors = averages.map(value => {
+        return value > 300 ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)'; // สีแดงถ้าค่าเกิน 300
+    });
+    const borderColors = averages.map(value => {
+        return value > 300 ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)'; // ขอบสีแดงถ้าค่าเกิน 300
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Values',
+                data: averages,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+}
+
+function loadContent(page) {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function () {
+        document.getElementById("main-content").innerHTML = this.responseText;
+        loadCSV('static/Result_File.csv', function (csvData) {
+            const parsedData = parseCSV(csvData);
+            createChart(parsedData.headers, parsedData.averages);
+        });
+    }
+    xhttp.open("GET", page, true);
+    xhttp.send();
+}
+</script>
+</body>
+</html>

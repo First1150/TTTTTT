@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Metrics</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2e;
+      color: #ddd;
+      margin: 0;
+      padding: 0;
+    }
+
+    .back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #daa403; /* สีพื้นหลังของปุ่ม */
+    color: #fff; /* สีของข้อความ */
+    text-decoration: none; /* เอาเส้นใต้ลิงก์ออก */
+    border-radius: 5px; /* มุมโค้งมน */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    text-align: center; /* จัดตำแหน่งข้อความ */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* เอฟเฟ็กต์การเปลี่ยนแปลง */
+  }
+
+  .back-button:hover {
+    background-color: rgb(185, 139, 0); /* สีพื้นหลังเมื่อเมาส์อยู่เหนือปุ่ม */
+    transform: scale(1.05); /* ขยายปุ่มเล็กน้อยเมื่อเมาส์อยู่เหนือ */
+  }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .status {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .status .pass, .status .fail {
+      display: none;
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    .status .pass {
+      color: #28a745;
+    }
+
+    .status .fail {
+      color: #dc3545;
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .metric {
+      background-color: #333;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      flex: 1 1 22%;
+      text-align: center;
+    }
+
+    .metric span {
+      display: block;
+      font-size: 18px;
+      margin: 5px 0;
+    }
+
+    .metric h4 {
+      margin: 0;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    #chart-container {
+      margin: 30px 0;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-button">Back to Home</a>
+  <div class="container">
+    <div class="status">
+      <div class="pass">PASS</div>
+      <div class="fail">FAIL</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <h4>AVG Response</h4>
+        <span id="avg-response">120 ms</span>
+      </div>
+      <div class="metric">
+        <h4>Count Requests</h4>
+        <span id="count-requests">1500</span>
+      </div>
+      <div class="metric">
+        <h4>Count Errors</h4>
+        <span id="count-errors">10</span>
+      </div>
+      <div class="metric">
+        <h4>Hit</h4>
+        <span id="hit">1400</span>
+      </div>
+      <div class="metric">
+        <h4>Min</h4>
+        <span id="min">100 ms</span>
+      </div>
+      <div class="metric">
+        <h4>Max</h4>
+        <span id="max">250 ms</span>
+      </div>
+      <div class="metric">
+        <h4>RB</h4>
+        <span id="rb">300</span>
+      </div>
+      <div class="metric">
+        <h4>SB</h4>
+        <span id="sb">200</span>
+      </div>
+    </div>
+
+    <div id="chart-container">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const avgResponseRequirement = parseFloat(urlParams.get('avg_response'));
+    const avgResponse = 130; // ใช้ค่าเฉพาะที่ได้จากการคำนวณ
+
+    const isPass = avgResponse <= avgResponseRequirement;
+    document.querySelector('.pass').style.display = isPass ? 'block' : 'none';
+    document.querySelector('.fail').style.display = isPass ? 'none' : 'block';
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['AVG Response', 'Count Requests', 'Count Errors', 'Hit', 'Min', 'Max', 'RB', 'SB'],
+        datasets: [{
+          label: 'Performance Metrics',
+          data: [avgResponse, 1500, 10, 1400, 100, 250, 300, 200],
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
