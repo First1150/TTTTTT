@@ -1,8 +1,8 @@
 import os
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from influxdb_client import InfluxDBClient, Point, WriteOptions, WritePrecision
+from influxdb_client import InfluxDBClient, Point, WritePrecision
 
 app = FastAPI()
 
@@ -21,9 +21,7 @@ INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "emptywallet")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "jlog")
 
 client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN)
-
-# Correct way to create a write API with default write options
-write_api = client.write_api(write_options=WriteOptions(batch_size=10000, flush_interval=10_000))
+write_api = client.write_api(write_options=WritePrecision.MS)
 query_api = client.query_api()
 
 @app.post("/upload/")
@@ -35,44 +33,41 @@ async def upload_files(
     transition: int = Form(...),
     error_rate: int = Form(...),
 ):
-    # อ่านเนื้อหาของไฟล์ที่อัปโหลด
-    content1 = await fileUpload1.read()
-    content2 = await fileUpload2.read()
+    try:
+        # อ่านเนื้อหาของไฟล์ที่อัปโหลด
+        content1 = await fileUpload1.read()
+        content2 = await fileUpload2.read()
 
-    # นับจำนวนบรรทัดในแต่ละไฟล์
-    num_lines1 = len(content1.splitlines())
-    num_lines2 = len(content2.splitlines())
+        # นับจำนวนบรรทัดในแต่ละไฟล์
+        num_lines1 = len(content1.splitlines())
+        num_lines2 = len(content2.splitlines())
 
-    # สร้างข้อมูลที่จะเขียนไปยัง InfluxDB
-    point = Point("performance_test") \
-        .tag("file1", fileUpload1.filename) \
-        .tag("file2", fileUpload2.filename) \
-        .field("num_lines_file1", num_lines1) \
-        .field("num_lines_file2", num_lines2) \
-        .field("concurrent_users", concurrent) \
-        .field("avg_response_time", avg_response) \
-        .field("transition", transition) \
-        .field("error_rate", error_rate) \
-        .time(write_precision=WritePrecision.MS)
-    
-    # เขียนข้อมูลไปยัง InfluxDB
-    write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
+        # สร้างข้อมูลที่จะเขียนไปยัง InfluxDB
+        point = Point("performance_test") \
+            .tag("file1", fileUpload1.filename) \
+            .tag("file2", fileUpload2.filename) \
+            .field("num_lines_file1", num_lines1) \
+            .field("num_lines_file2", num_lines2) \
+            .field("concurrent_users", concurrent) \
+            .field("avg_response_time", avg_response) \
+            .field("transition", transition) \
+            .field("error_rate", error_rate) \
+            .time(write_precision=WritePrecision.MS)
+        
+        # เขียนข้อมูลไปยัง InfluxDB
+        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
 
-    # ส่งข้อมูลกลับไปที่ frontend
-    return JSONResponse(content={
-        "file1": {
-            "filename": fileUpload1.filename,
-            "num_lines": num_lines1
-        },
-        "file2": {
-            "filename": fileUpload2.filename,
-            "num_lines": num_lines2
-        },
-        "concurrent": concurrent,
-        "avg_response": avg_response,
-        "transition": transition,
-        "error_rate": error_rate
-    })
+        # ส่งข้อมูลกลับไปที่ frontend
+        return JSONResponse(content={
+            "file1": {"filename": fileUpload1.filename, "num_lines": num_lines1},
+            "file2": {"filename": fileUpload2.filename, "num_lines": num_lines2},
+            "concurrent": concurrent,
+            "avg_response": avg_response,
+            "transition": transition,
+            "error_rate": error_rate
+        })
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/metrics")
 async def get_metrics():

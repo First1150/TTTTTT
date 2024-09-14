@@ -92,7 +92,16 @@
   <a href="/" class="back-button">Back to Home</a>
   <div class="form-container">
     <h3>Performance Test Requirements</h3>
-    <form id="mainForm" enctype="multipart/form-data" action="http://<http://34.87.122.161:8086>/write?db=<DATABASE>" method="POST">
+    <form id="mainForm" enctype="multipart/form-data" action="http://127.0.0.1:8000/upload" method="POST">
+      <input type="file" name="fileUpload1" required>
+      <input type="file" name="fileUpload2" required>
+      <input type="number" name="concurrent" required>
+      <input type="number" name="avg_response" required>
+      <input type="number" name="transition" required>
+      <input type="number" name="error_rate" required>
+      <button type="submit">Submit</button>
+  </form>
+  
 
       <!-- ช่องอัปโหลดไฟล์ CSV แรก -->
       <div class="form-group">
